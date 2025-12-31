@@ -1,9 +1,7 @@
 pipeline {
     agent any
 
-    environement{
-
-    }
+    
     stages {
         stage('Checkout') {
             steps {
@@ -28,5 +26,29 @@ pipeline {
                                                """
                     }
                 }
+
+                stage('Docker Build') {
+            steps {
+                sh 'docker build -t jenkins-tp:latest .'
+            }
+        }
+
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh """
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        docker tag jenkins-tp:latest your-dockerhub-username/jenkins-tp:latest
+                        docker push your-dockerhub-username/jenkins-tp:latest
+                    """
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh 'docker run -d -p 8080:8080 --name jenkins-tp-container your-dockerhub-username/jenkins-tp:latest'
+            }
+        }
     }
 }
