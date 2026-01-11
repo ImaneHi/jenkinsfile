@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        SONARQUBE_SERVER = 'SonarQube'
+    }
+
     
     stages {
         stage('Checkout') {
@@ -17,17 +21,19 @@ pipeline {
             }
         }
 
-        stage('Test') {
-                    steps {
-                        sh """
-                             mvn sonar:sonar \
-                                 -Dsonar.host.url=http://localhost:9000 \
-                                 -Dsonar.login=sqa_9eec0abf28efc3f3ea27bef01323132a6574f97d
-                                               """
-                    }
+        stage('SonarQube Test') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                    mvn sonar:sonar \
+                      -Dsonar.projectKey=todo-app \
+                      -Dsonar.projectName=todo-app
+                    '''
                 }
+            }
+        }
 
-                stage('Docker Build') {
+        stage('Docker Build') {
             steps {
                 sh 'docker build -t jenkins-tp:latest .'
             }
