@@ -25,6 +25,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('SonarQube') {
                     sh '''
+                    mvn help:describe -Dplugin=sonar
                     mvn sonar:sonar \
                       -Dsonar.projectKey=todo-app \
                       -Dsonar.projectName=todo-app
